@@ -1,0 +1,20 @@
+        return (isinstance(other, self.__class__) and
+                self.is_pos != other.is_pos and
+                self.symbol == other.symbol)
+
+====
+
+i1_plus, i1_neg, i2_plus, i2_neg, inter_1, inter_2, inter_set = set()
+
+        i1_plus = set(node_a1.action.effect_add)
+        i1_neg = set(node_a2.action.effect_rem)
+
+        i2_plus = set(node_a2.action.effect_add)
+        i2_neg = set(node_a1.action.effect_rem)
+
+        inter_1 = i1_plus & i2_neg #intersection
+        inter_2 = i2_plus & i1_neg
+
+        inter_set = inter_1 & inter_2 #intersection of intersections
+
+        return (len(inter_set) == 0)

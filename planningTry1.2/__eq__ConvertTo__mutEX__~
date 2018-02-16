@@ -1,0 +1,3 @@
+        return (isinstance(other, self.__class__) and
+                self.is_pos != other.is_pos and
+                self.symbol == other.symbol)
