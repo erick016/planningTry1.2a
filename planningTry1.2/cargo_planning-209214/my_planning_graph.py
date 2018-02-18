@@ -20,9 +20,9 @@ class PgNode():
 
         self.my_level = 0
 
-    def change_my_level(level) -> int:
+#    def change_my_level(level) -> int:
 
-        self.my_level = level
+#        self.my_level = level
 
     def is_mutex(self, other) -> bool:
         """Boolean test for mutual exclusion
@@ -313,29 +313,36 @@ class PlanningGraph():
         #   to see if a proposed PgNode_a has prenodes that are a subset of the previous S level.  Once an
         #   action node is added, it MUST be connected to the S node instances in the appropriate s_level set.
 
-        my_problem = self.problem
-        possible_true_preconditions = self.s_levels[level - 1] #look at literals on this level or the previous? (guess previous because of S & A order)
-        precondition_state_TF = encode_state(initial,possible_true_preconditions)
-        my_goal = my_problem.goal
+        my_problem = self.problem #1
+        possible_true_preconditions = self.s_levels[level - 1] #2 #look at literals on this level or the previous? (guess previous because of S & A order)
+        #precondition_state_TF = encode_state(initial,possible_true_preconditions)
+        precondition_state_TF = self.fs #3
+        my_goal = my_problem.goal #4
 
-        return_list = []
+        return_list = [] #5
 
-        s_FluSta_ofA = decode_state(precondition_state_TF,my_goal)
+        s_FluSta_ofA = decode_state(precondition_state_TF,my_goal) #6
         
-        true_preconditions_list = s_FluSta_ofA.pos
+        true_preconditions_list = s_FluSta_ofA.pos #7
 
-        actions_list = my_problem.actions(s_FluSta_ofA)
-
+        actions_list = my_problem.actions(s_FluSta_ofA) #8
         #for -> go through list of actions -> something something something
-        for action in actions_list:
+        for action in actions_list: #9
             
-            action_requirements_state_TF  = encode_state(true_preconditions_list,action.precond_pos) 
-            result_FluSta = decode_state(action_requirements_state_TF,true_preconditions_list)
-            result_integer = len(result_FluSta.neg)
+            #action_requirements_state_TF  = encode_state(true_preconditions_list,action.precond_pos) #10
+
+            # == v 10 v == #
+
+            action_requirements_state_TF = [true_preconditions_list in action.precond_pos]
+
+            # == v 10 v == #
+
+            result_FluSta = decode_state(action_requirements_state_TF,true_preconditions_list) #11
+            result_integer = len(result_FluSta.neg) #12
             
         #2 from comments
         #for -> go through list of actions -> list of all positive preconditions in order to connect the nodes to the previous level.
-        #Take off your monkey puzzle!
+
 
 
         # !! RETURNING result_integer !!
@@ -347,25 +354,25 @@ class PlanningGraph():
             #my_pos_effects_list = action.effect_add
             #my_neg_effects_list = action.effect_rem
             
-            mutual_set = set()
-            count = 0
+            mutual_set = set() #13
+            count = 0 #14
             
-            for literal in s_levels[level - 1]:                
+            for literal in self.s_levels[level - 1]: #15
                 
-                if (literal.is_pos):
-                    mutual_set.add ([literal in action.precond_pos])
+                if (literal.is_pos): #16
+                    mutual_set.add ([literal in action.precond_pos]) #17
                     
-                if (mutual_set.len == action.precond_neg):
+                if (mutual_set.len == action.precond_neg): #18
                     #instantiate the Action node
                     #name,args,precond_pos,precond_neg,effect_add,effect_rem
                     #curr_action = Action(expr(""), [my_pos_preconditions_list,my_neg_preconditions_list], [my_pos_effects_list, my_neg_effects_list])
 
                 # HOW TO ADD TO GRAPH? DOES IT NEED A PARENT? -> Add to A levels (Owned by PlanningGraph, in this file); which is a list of sets
-                    return_list.append(mutual_set)
+                    return_list.append(mutual_set) #19
 
-        return_set = set(return_list)
+        return_set = set(return_list) #20
         
-        self.a_levels[level] = return_set #self, in this case refers to a PgNode_a, which may or may not inherit self.a_levels from its parent
+        self.a_levels[level] = return_set #21 #self, in this case refers to a PgNode_a, which may or may not inherit self.a_levels from its parent
 
     def add_literal_level(self, level): #this function should have a loop in it, to add the entire level
         """ add an S (literal) level to the Planning Graph
@@ -385,6 +392,14 @@ class PlanningGraph():
         #   all of the new S nodes as children of all the A nodes that could produce them, and likewise add the A nodes to the
         #   parent sets of the S nodes
         
+        reference_literal_level = self.a_levels[level - 1]
+        literals_in_current_level = set() 
+        
+        for literal in reference_literal_level:
+            current_effect_nodes = literal.effnodes
+            literals_in_current_level.add([current_effect_nodes not in literals_in_current_level])
+
+        self.s_levels[level] = literals_in_current_level
         
     def update_a_mutex(self, nodeset):
         """ Determine and update sibling mutual exclusion for A-level nodes
@@ -511,14 +526,10 @@ class PlanningGraph():
         
         myReturnLen = len(union_set)
         
-        if (myReturnLen == 0)
-            {
-                myReturn = False;
-            }
+        if (myReturnLen == 0):
+                myReturn = False
         else:
-            {
-                myReturn = True;
-            }
+                myReturn = True
         return myReturn
 
     def competing_needs_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
@@ -549,14 +560,14 @@ class PlanningGraph():
 
         myReturnLen = len(union_set)
         
-        if (myReturnLen == 0)
-            {
-                myReturn = False;
-            }
+        if (myReturnLen == 0):
+
+                myReturn = False
+
         else:
-            {
-                myReturn = True;
-            }
+
+                myReturn = True
+
         return myReturn
 
     def update_s_mutex(self, nodeset: set):
@@ -611,7 +622,15 @@ class PlanningGraph():
         :return: bool
         """
         # TODY test for Inconsistent Support between nodes
-        return (()and())
+        potential_list = [x for x in node_s1.parents and node_s2.parents]
+        actual_list = list()
+        
+        for element_1 in potential_list:
+            for element_2 in potential_list:
+                if element_1.is_mutex(element_2):
+                    actual_list.add(element_1)
+
+        return ( actual_list.len <= 0)
 
     def h_levelsum(self) -> int:
         """The sum of the level costs of the individual goals (admissible if goals independent)
